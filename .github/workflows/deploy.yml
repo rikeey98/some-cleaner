@@ -32,6 +32,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
+          VITE_BASE: /some-cleaner/
           VITE_USE_MOCK: true
           VITE_API_URL: ${{ vars.VITE_API_URL || 'http://localhost:8000' }}
 
