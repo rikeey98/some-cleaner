@@ -4,10 +4,23 @@ export interface User {
   email: string
 }
 
-export interface Script {
+export interface Disk {
   id: number
-  internalPath: string
-  externalPath: string
+  name: string
+  mountPath: string
+  server: string
+  usedGB: number
+  quotaGB: number
+}
+
+export interface DeleteProcess {
+  id: number
+  diskId: number
+  diskName: string
+  internalPaths: string[]
+  externalPaths: string[]
+  toEmail: string
+  ccEmail: string
   createdBy: string
   createdAt: string
   status: 'pending' | 'running' | 'completed' | 'failed'

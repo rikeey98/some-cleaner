@@ -2,8 +2,9 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import AppLayout from '@/components/layout/AppLayout'
 import LoginPage from '@/pages/LoginPage'
-import ScriptsPage from '@/pages/ScriptsPage'
-import ScriptNewPage from '@/pages/ScriptNewPage'
+import DashboardPage from '@/pages/DashboardPage'
+import DeleteProcessPage from '@/pages/DeleteProcessPage'
+import HistoryPage from '@/pages/HistoryPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -20,9 +21,10 @@ export const router = createBrowserRouter(
       path: '/',
       element: <RequireAuth><AppLayout /></RequireAuth>,
       children: [
-        { index: true, element: <Navigate to="/scripts" replace /> },
-        { path: 'scripts', element: <ScriptsPage /> },
-        { path: 'scripts/new', element: <ScriptNewPage /> },
+        { index: true, element: <Navigate to="/dashboard" replace /> },
+        { path: 'dashboard', element: <DashboardPage /> },
+        { path: 'process/new', element: <DeleteProcessPage /> },
+        { path: 'history', element: <HistoryPage /> },
       ],
     },
   ],

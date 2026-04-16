@@ -19,20 +19,20 @@ export default function AppLayout() {
             <span className="font-bold text-foreground">Some Cleaner</span>
             <nav className="flex gap-4 text-sm">
               <NavLink
-                to="/scripts"
+                to="/dashboard"
                 className={({ isActive }) =>
                   isActive ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'
                 }
               >
-                스크립트 목록
+                대시보드
               </NavLink>
               <NavLink
-                to="/scripts/new"
+                to="/history"
                 className={({ isActive }) =>
                   isActive ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'
                 }
               >
-                스크립트 등록
+                처리 내역
               </NavLink>
             </nav>
           </div>
