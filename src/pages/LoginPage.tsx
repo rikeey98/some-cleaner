@@ -25,7 +25,7 @@ export default function LoginPage() {
     try {
       const { data } = await login(username, password)
       loginStore(data.token, data.user)
-      navigate('/scripts')
+      navigate('/dashboard')
     } catch {
       setError('로그인에 실패했습니다.')
     } finally {

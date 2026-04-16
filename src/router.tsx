@@ -25,8 +25,10 @@ export const router = createBrowserRouter(
         { path: 'dashboard', element: <DashboardPage /> },
         { path: 'process/new', element: <DeleteProcessPage /> },
         { path: 'history', element: <HistoryPage /> },
+        { path: '*', element: <Navigate to="/dashboard" replace /> },
       ],
     },
+    { path: '*', element: <Navigate to="/" replace /> },
   ],
   { basename: import.meta.env.BASE_URL },
 )
