@@ -61,25 +61,23 @@ export default function PathInput({ label, value, onChange, placeholder = 'ê²½ë¡
         )}
       </div>
 
-      {value.length > 0 && (
-        <div className="border rounded-md p-2 space-y-1 bg-muted/30">
-          {value.map((path) => (
-            <div
-              key={path}
-              className="flex items-center justify-between gap-2 px-2 py-1 bg-background rounded text-sm font-mono"
+      <div className={cn('border rounded-md p-2 space-y-1 bg-muted/30', value.length === 0 && 'hidden')}>
+        {value.map((path) => (
+          <div
+            key={path}
+            className="flex items-center justify-between gap-2 px-2 py-1 bg-background rounded text-sm font-mono"
+          >
+            <span className="truncate">{path}</span>
+            <button
+              type="button"
+              onClick={() => removePath(path)}
+              className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
             >
-              <span className="truncate">{path}</span>
-              <button
-                type="button"
-                onClick={() => removePath(path)}
-                className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        ))}
+      </div>
 
       <Input
         ref={inputRef}
