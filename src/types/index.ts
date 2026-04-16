@@ -13,14 +13,23 @@ export interface Disk {
   quotaGB: number
 }
 
+export interface DiskConfig {
+  diskId: number
+  diskName: string
+  internalPaths: string[]
+  externalPaths: string[]
+  toEmails: string[]
+  ccEmails: string[]
+}
+
 export interface DeleteProcess {
   id: number
   diskId: number
   diskName: string
   internalPaths: string[]
   externalPaths: string[]
-  toEmail: string
-  ccEmail: string
+  toEmails: string[]
+  ccEmails: string[]
   createdBy: string
   createdAt: string
   status: 'pending' | 'running' | 'completed' | 'failed'

@@ -2,14 +2,14 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Disk, DiskConfig } from '@/types'
 
-interface DiskCardProps {
+interface DiskListItemProps {
   disk: Disk
   config?: DiskConfig
   onConfig: (disk: Disk) => void
   onDelete: (disk: Disk) => void
 }
 
-export default function DiskCard({ disk, config, onConfig, onDelete }: DiskCardProps) {
+export default function DiskListItem({ disk, config, onConfig, onDelete }: DiskListItemProps) {
   const usagePercent = Math.round((disk.usedGB / disk.quotaGB) * 100)
   const barColor =
     usagePercent >= 90 ? 'bg-destructive' :
@@ -17,31 +17,29 @@ export default function DiskCard({ disk, config, onConfig, onDelete }: DiskCardP
     'bg-primary'
 
   return (
-    <div className="border rounded-lg p-4 space-y-3 bg-card">
-      <div>
+    <div className="border rounded-lg px-4 py-3 flex items-center gap-4 bg-card">
+      <div className="w-40 shrink-0">
         <p className="font-medium text-sm">{disk.name}</p>
-        <p className="text-xs text-muted-foreground font-mono">{disk.mountPath}</p>
-        <p className="text-xs text-muted-foreground">서버: {disk.server}</p>
+        <p className="text-xs text-muted-foreground">{disk.server}</p>
       </div>
 
-      <div className="space-y-1">
+      <p className="font-mono text-xs text-muted-foreground w-40 shrink-0 truncate">{disk.mountPath}</p>
+
+      <div className="flex-1 space-y-1 min-w-0">
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{usagePercent}% 사용 중</span>
+          <span>{usagePercent}%</span>
           <span>{disk.usedGB}GB / {disk.quotaGB}GB</span>
         </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
           <div className={cn('h-full rounded-full transition-all', barColor)} style={{ width: `${usagePercent}%` }} />
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <Button size="sm" variant="outline" className="flex-1" onClick={() => onConfig(disk)}>
-          설정
-        </Button>
+      <div className="flex gap-2 shrink-0">
+        <Button size="sm" variant="outline" onClick={() => onConfig(disk)}>설정</Button>
         <Button
           size="sm"
           variant="destructive"
-          className="flex-1"
           onClick={() => onDelete(disk)}
           disabled={!config}
           title={!config ? '먼저 설정이 필요합니다' : undefined}
