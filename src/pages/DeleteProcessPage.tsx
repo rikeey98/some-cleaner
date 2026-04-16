@@ -14,7 +14,7 @@ export default function DeleteProcessPage() {
   const diskId = Number(searchParams.get('diskId'))
 
   const { disks, fetchDisks } = useDiskStore()
-  const { getConfig, setConfig } = useDiskConfigStore()
+  const { getConfig, fetchConfig, saveConfig } = useDiskConfigStore()
 
   const disk = disks.find((d) => d.id === diskId)
   const saved = getConfig(diskId)
@@ -27,15 +27,16 @@ export default function DeleteProcessPage() {
 
   useEffect(() => {
     if (disks.length === 0) fetchDisks()
-  }, [disks.length, fetchDisks])
+    fetchConfig(diskId)
+  }, [diskId, fetchDisks, fetchConfig])
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (internalPaths.length === 0) { setError('내부 경로를 하나 이상 입력해주세요.'); return }
     if (externalPaths.length === 0) { setError('외부 경로를 하나 이상 입력해주세요.'); return }
     if (toEmails.length === 0) { setError('수신자 이메일을 하나 이상 입력해주세요.'); return }
 
-    setConfig(diskId, {
+    await saveConfig(diskId, {
       diskId,
       diskName: disk?.name ?? '',
       internalPaths,

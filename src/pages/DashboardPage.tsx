@@ -13,7 +13,7 @@ import type { Disk } from '@/types'
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { disks, isLoading, fetchDisks } = useDiskStore()
-  const { configs, getConfig } = useDiskConfigStore()
+  const { configs, getConfig, fetchAllConfigs } = useDiskConfigStore()
   const createProcess = useProcessStore((s) => s.createProcess)
 
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
@@ -21,7 +21,10 @@ export default function DashboardPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => { fetchDisks() }, [fetchDisks])
+  useEffect(() => {
+    fetchDisks()
+    fetchAllConfigs()
+  }, [fetchDisks, fetchAllConfigs])
 
   const handleConfig = (disk: Disk) => {
     navigate(`/process/new?diskId=${disk.id}`)
