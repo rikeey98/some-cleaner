@@ -10,18 +10,21 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
 }
 
-export const router = createBrowserRouter([
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/',
-    element: <RequireAuth><AppLayout /></RequireAuth>,
-    children: [
-      { index: true, element: <Navigate to="/scripts" replace /> },
-      { path: 'scripts', element: <ScriptsPage /> },
-      { path: 'scripts/new', element: <ScriptNewPage /> },
-    ],
-  },
-])
+export const router = createBrowserRouter(
+  [
+    {
+      path: '/login',
+      element: <LoginPage />,
+    },
+    {
+      path: '/',
+      element: <RequireAuth><AppLayout /></RequireAuth>,
+      children: [
+        { index: true, element: <Navigate to="/scripts" replace /> },
+        { path: 'scripts', element: <ScriptsPage /> },
+        { path: 'scripts/new', element: <ScriptNewPage /> },
+      ],
+    },
+  ],
+  { basename: import.meta.env.BASE_URL },
+)
