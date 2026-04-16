@@ -26,9 +26,11 @@ export default function PathInput({ label, value, onChange, placeholder = 'ê²½ë¡
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
+      e.stopPropagation()
       if (input.trim()) {
         addPaths(input)
         setInput('')
+        inputRef.current?.focus()
       }
     }
   }
