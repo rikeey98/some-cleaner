@@ -5,10 +5,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { login } from '@/api/auth'
+import { startSsoLogin } from '@/lib/sso'
 import { useAuthStore } from '@/store/useAuthStore'
 
 const isMock = import.meta.env.VITE_USE_MOCK === 'true'
-const SSO_URL = 'https://at-dev.samsungds.net/openid/sso/?sso'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -31,6 +31,12 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleSsoLogin = () => {
+    setError('')
+    const result = startSsoLogin('/dashboard')
+    if (!result.ok) setError(result.message)
   }
 
   return (
@@ -70,9 +76,12 @@ export default function LoginPage() {
               </Button>
             </form>
           ) : (
-            <Button className="w-full" onClick={() => window.location.href = SSO_URL}>
-              사내 SSO 로그인
-            </Button>
+            <div className="space-y-4">
+              <Button className="w-full" type="button" onClick={handleSsoLogin}>
+                사내 SSO 로그인
+              </Button>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+            </div>
           )}
         </CardContent>
       </Card>
