@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useRef } from 'react'
 import { X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,7 +12,6 @@ interface PathInputProps {
 }
 
 export default function PathInput({ label, value, onChange, placeholder = '경로 입력 후 Enter' }: PathInputProps) {
-  const [input, setInput] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const addPaths = (raw: string) => {
@@ -27,9 +26,10 @@ export default function PathInput({ label, value, onChange, placeholder = '경�
     if (e.key === 'Enter') {
       e.preventDefault()
       e.stopPropagation()
-      if (input.trim()) {
-        addPaths(input)
-        setInput('')
+      const val = inputRef.current?.value.trim() ?? ''
+      if (val) {
+        addPaths(val)
+        if (inputRef.current) inputRef.current.value = ''
         inputRef.current?.focus()
       }
     }
@@ -40,7 +40,8 @@ export default function PathInput({ label, value, onChange, placeholder = '경�
     if (pasted.includes('\n')) {
       e.preventDefault()
       addPaths(pasted)
-      setInput('')
+      if (inputRef.current) inputRef.current.value = ''
+      inputRef.current?.focus()
     }
   }
 
@@ -81,8 +82,7 @@ export default function PathInput({ label, value, onChange, placeholder = '경�
 
       <Input
         ref={inputRef}
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
+        defaultValue=""
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
         placeholder={placeholder}
