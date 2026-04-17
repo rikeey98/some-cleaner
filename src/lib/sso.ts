@@ -3,7 +3,7 @@ const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1'])
 
 function setCookie(name: string, value: string, domain: string) {
   document.cookie = [
-    `${name}=${encodeURIComponent(value)}`,
+    `${name}=${value}`,
     `Domain=${domain}`,
     'Path=/',
     'SameSite=Lax',
