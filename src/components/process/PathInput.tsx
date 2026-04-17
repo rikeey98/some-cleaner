@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useState, useRef } from 'react'
 import { X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +13,7 @@ interface PathInputProps {
 
 export default function PathInput({ label, value, onChange, placeholder = '경로 입력 후 Enter' }: PathInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [inputValue, setInputValue] = useState('')
 
   const addPaths = (raw: string) => {
     const newPaths = raw
@@ -22,16 +23,19 @@ export default function PathInput({ label, value, onChange, placeholder = '경�
     if (newPaths.length > 0) onChange([...value, ...newPaths])
   }
 
+  const handleAdd = () => {
+    const val = inputValue.trim()
+    if (!val) return
+    addPaths(val)
+    setInputValue('')
+    requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
       e.preventDefault()
       e.stopPropagation()
-      const val = inputRef.current?.value.trim() ?? ''
-      if (val) {
-        addPaths(val)
-        if (inputRef.current) inputRef.current.value = ''
-        inputRef.current?.focus()
-      }
+      handleAdd()
     }
   }
 
@@ -39,9 +43,10 @@ export default function PathInput({ label, value, onChange, placeholder = '경�
     const pasted = e.clipboardData.getData('text')
     if (pasted.includes('\n')) {
       e.preventDefault()
+      e.stopPropagation()
       addPaths(pasted)
-      if (inputRef.current) inputRef.current.value = ''
-      inputRef.current?.focus()
+      setInputValue('')
+      requestAnimationFrame(() => inputRef.current?.focus())
     }
   }
 
@@ -82,11 +87,12 @@ export default function PathInput({ label, value, onChange, placeholder = '경�
 
       <Input
         ref={inputRef}
-        defaultValue=""
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
         placeholder={placeholder}
-        className={cn('font-mono text-sm')}
+        className="font-mono text-sm"
       />
       <p className="text-xs text-muted-foreground">
         Enter로 추가 · 여러 경로는 줄바꿈으로 구분하여 한 번에 붙여넣기 가능
