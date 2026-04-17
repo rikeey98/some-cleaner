@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,11 +24,27 @@ export default function DeleteProcessPage() {
   const [toEmails, setToEmails] = useState<string[]>(saved?.toEmails ?? [])
   const [ccEmails, setCcEmails] = useState<string[]>(saved?.ccEmails ?? [])
   const [error, setError] = useState('')
+  const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
     if (disks.length === 0) fetchDisks()
     fetchConfig(diskId)
   }, [diskId, fetchDisks, fetchConfig])
+
+  // React 17+ 이벤트 위임 구조에서는 React onKeyDown의 e.preventDefault()가
+  // 브라우저 form submit을 막지 못하는 경우가 있음.
+  // 네이티브 capture 단계 리스너로 Enter 키를 차단해야 함.
+  useEffect(() => {
+    const form = formRef.current
+    if (!form) return
+    const preventEnterSubmit = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT') {
+        e.preventDefault()
+      }
+    }
+    form.addEventListener('keydown', preventEnterSubmit, true)
+    return () => form.removeEventListener('keydown', preventEnterSubmit, true)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -56,12 +72,8 @@ export default function DeleteProcessPage() {
         </CardHeader>
         <CardContent>
           <form
+            ref={formRef}
             onSubmit={handleSubmit}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT') {
-                e.preventDefault()
-              }
-            }}
             className="space-y-6"
           >
             <div className="space-y-1">
