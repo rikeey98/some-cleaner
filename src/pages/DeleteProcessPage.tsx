@@ -55,7 +55,15 @@ export default function DeleteProcessPage() {
           <CardTitle className="text-base">삭제 작업 정보 입력</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form
+            onSubmit={handleSubmit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT') {
+                e.preventDefault()
+              }
+            }}
+            className="space-y-6"
+          >
             <div className="space-y-1">
               <Label>디스크</Label>
               <Input

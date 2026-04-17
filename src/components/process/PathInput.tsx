@@ -23,7 +23,7 @@ export default function PathInput({ label, value, onChange, placeholder = 'ê²½ë¡
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
       e.preventDefault()
       e.stopPropagation()
       const val = inputRef.current?.value.trim() ?? ''
