@@ -13,6 +13,7 @@ interface PathInputProps {
 
 export default function PathInput({ label, value, onChange, placeholder = '경로 입력 후 Enter' }: PathInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const isComposingRef = useRef(false)
   const [inputValue, setInputValue] = useState('')
   const shouldFocus = useRef(false)
 
@@ -39,13 +40,11 @@ export default function PathInput({ label, value, onChange, placeholder = '경�
     shouldFocus.current = true
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
-      e.preventDefault()
-      e.nativeEvent.stopImmediatePropagation()
-      e.stopPropagation()
-      handleAdd()
-    }
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (isComposingRef.current) return
+    handleAdd()
   }
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -94,15 +93,25 @@ export default function PathInput({ label, value, onChange, placeholder = '경�
         ))}
       </div>
 
-      <Input
-        ref={inputRef}
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onPaste={handlePaste}
-        placeholder={placeholder}
-        className="font-mono text-sm"
-      />
+      <form onSubmit={handleSubmit}>
+        <Input
+          ref={inputRef}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onCompositionStart={() => {
+            isComposingRef.current = true
+          }}
+          onCompositionEnd={() => {
+            isComposingRef.current = false
+          }}
+          onKeyDownCapture={(e) => {
+            if (e.key === 'Enter') e.stopPropagation()
+          }}
+          onPaste={handlePaste}
+          placeholder={placeholder}
+          className="font-mono text-sm"
+        />
+      </form>
       <p className="text-xs text-muted-foreground">
         Enter로 추가 · 여러 경로는 줄바꿈으로 구분하여 한 번에 붙여넣기 가능
       </p>
