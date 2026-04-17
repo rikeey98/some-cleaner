@@ -1,15 +1,13 @@
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import type { Disk, DiskConfig } from '@/types'
+import type { Disk } from '@/types'
 
 interface DiskCardProps {
   disk: Disk
-  config?: DiskConfig
-  onConfig: (disk: Disk) => void
-  onDelete: (disk: Disk) => void
+  onOpenForm: (disk: Disk) => void
 }
 
-export default function DiskCard({ disk, config, onConfig, onDelete }: DiskCardProps) {
+export default function DiskCard({ disk, onOpenForm }: DiskCardProps) {
   const usagePercent = Math.round((disk.usedGB / disk.quotaGB) * 100)
   const barColor =
     usagePercent >= 90 ? 'bg-destructive' :
@@ -35,18 +33,13 @@ export default function DiskCard({ disk, config, onConfig, onDelete }: DiskCardP
       </div>
 
       <div className="flex gap-2">
-        <Button size="sm" variant="outline" className="flex-1" onClick={() => onConfig(disk)}>
-          설정
-        </Button>
         <Button
           size="sm"
           variant="destructive"
           className="flex-1"
-          onClick={() => onDelete(disk)}
-          disabled={!config}
-          title={!config ? '먼저 설정이 필요합니다' : undefined}
+          onClick={() => onOpenForm(disk)}
         >
-          삭제
+          삭제 등록
         </Button>
       </div>
     </div>

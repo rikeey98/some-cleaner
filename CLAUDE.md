@@ -74,12 +74,11 @@ some-cleaner/
 │   │   ├── client.ts         # axios 인스턴스 (baseURL, Authorization 헤더)
 │   │   ├── auth.ts           # POST /api/auth/login, GET /api/auth/me
 │   │   ├── disks.ts          # GET /api/disks/
-│   │   └── process.ts        # GET /api/process/, POST /api/process/
+│   │   └── process.ts        # GET /api/process/, GET /api/process/latest-config/:diskId/, POST /api/process/
 │   ├── components/
 │   │   ├── disk/
-│   │   │   ├── DiskCard.tsx           # 카드형 디스크 뷰 (사용량 프로그레스바 + 설정/삭제 버튼)
+│   │   │   ├── DiskCard.tsx           # 카드형 디스크 뷰 (사용량 프로그레스바 + 삭제 등록 버튼)
 │   │   │   ├── DiskListItem.tsx       # 리스트형 디스크 뷰
-│   │   │   └── DeleteConfirmModal.tsx # 삭제 등록 전 설정 확인 모달
 │   │   ├── layout/
 │   │   │   └── AppLayout.tsx  # 헤더 (사용자명 + 로그아웃) + 사이드 네비
 │   │   ├── process/
@@ -92,16 +91,15 @@ some-cleaner/
 │   │   └── browser.ts        # MSW worker 설정
 │   ├── pages/
 │   │   ├── LoginPage.tsx       # ID/PW 로그인 (mock) / SSO redirect (production)
-│   │   ├── DashboardPage.tsx   # 디스크 목록 (카드/리스트 토글) + 삭제 확인 모달
-│   │   ├── DeleteProcessPage.tsx # 삭제 프로세스 등록 폼
+│   │   ├── DashboardPage.tsx   # 디스크 목록 (카드/리스트 토글) + 삭제 등록 진입
+│   │   ├── DeleteProcessPage.tsx # 마지막 실행값 prefill 후 바로 삭제 등록하는 폼
 │   │   └── HistoryPage.tsx     # 삭제 작업 이력 테이블
 │   ├── store/
 │   │   ├── useAuthStore.ts     # 로그인 토큰 + 사용자 정보
 │   │   ├── useDiskStore.ts     # 디스크 목록
-│   │   ├── useDiskConfigStore.ts # 디스크별 설정 (로컬 상태, API 아님)
 │   │   └── useProcessStore.ts  # 삭제 프로세스 목록 + 생성
 │   ├── types/
-│   │   └── index.ts            # User, Disk, DiskConfig, DeleteProcess
+│   │   └── index.ts            # User, Disk, DeleteProcessInput, DeleteProcess
 │   ├── router.tsx              # createBrowserRouter 라우팅 설정
 │   ├── main.tsx                # MSW 조건부 초기화 후 렌더
 │   ├── index.css               # Tailwind + shadcn CSS 변수 + Pretendard
@@ -150,6 +148,7 @@ some-cleaner/
 POST /api/auth/login    → { token, user }
 GET  /api/auth/me       → User
 GET  /api/disks/        → Disk[]
+GET  /api/process/latest-config/:diskId/ → DeleteProcessInput | 404
 GET  /api/process/      → DeleteProcess[]
 POST /api/process/      → DeleteProcess (status: 'pending', 201)
 ```
@@ -164,16 +163,14 @@ interface Disk {
   server: string; usedGB: number; quotaGB: number
 }
 
-interface DiskConfig {          // 로컬 zustand 상태 (API 아님)
+interface DeleteProcessInput {
   diskId: number; diskName: string
   internalPaths: string[]; externalPaths: string[]
   toEmails: string[]; ccEmails: string[]
 }
 
-interface DeleteProcess {
-  id: number; diskId: number; diskName: string
-  internalPaths: string[]; externalPaths: string[]
-  toEmails: string[]; ccEmails: string[]
+interface DeleteProcess extends DeleteProcessInput {
+  id: number
   createdBy: string; createdAt: string
   status: 'pending' | 'running' | 'completed' | 'failed'
   executedAt?: string; message?: string
@@ -207,9 +204,12 @@ interface DeleteProcess {
 
 ## 대시보드 흐름
 
-1. **설정 버튼** → `/process/new?diskId=:id` 이동 → PathInput으로 경로/이메일 입력 → `useDiskConfigStore`에 저장 → `/dashboard` 복귀
-2. **삭제 버튼** (설정 없으면 disabled) → `DeleteConfirmModal` 열림 → 저장된 설정 표시 → 확인 → `POST /api/process/` → `/history` 이동
-3. 카드형/리스트형 토글 (LayoutGrid / List 아이콘)
+1. **삭제 등록 버튼** → `/process/new?diskId=:id` 이동
+2. 폼 로드 시 `GET /api/process/latest-config/:diskId/` 호출
+3. 마지막 실행값이 있으면 경로/이메일 prefill, 없으면 빈값으로 시작
+4. 사용자 입력 후 **삭제 등록** → `POST /api/process/`
+5. 등록 완료 후 `/history` 이동
+6. 카드형/리스트형 토글 (LayoutGrid / List 아이콘)
 
 ---
 
@@ -224,13 +224,13 @@ interface DeleteProcess {
 - [x] Docker + Nginx 빌드 검증
 - [x] react-router-dom + RequireAuth guard
 - [x] axios client (Authorization 헤더 자동 주입)
-- [x] zustand stores (auth, disk, process, diskConfig)
+- [x] zustand stores (auth, disk, process)
 - [x] LoginPage
 - [x] AppLayout (헤더 + 네비)
-- [x] DashboardPage (카드/리스트 토글, 설정/삭제 버튼, 삭제 확인 모달)
-- [x] DeleteProcessPage (다중 경로/이메일 입력)
+- [x] DashboardPage (카드/리스트 토글, 삭제 등록 진입)
+- [x] DeleteProcessPage (마지막 실행값 prefill + 바로 삭제 등록)
 - [x] HistoryPage (삭제 이력 테이블 + 상태 badge)
-- [x] MSW handlers (auth + disks + process API)
+- [x] MSW handlers (auth + disks + process API, latest-config prefill)
 - [ ] Django DRF 백엔드 연동 (사내 배포 시)
 - [ ] HistoryPage 상태 실시간 폴링
 
@@ -242,7 +242,7 @@ interface DeleteProcess {
 
 `POLICY.md`에서 관리하는 항목:
 - 삭제 버튼 활성화 기준
-- 이메일 vs 경로의 저장 방식 차이
+- 마지막 실행값 prefill 기준
 - 프로세스 생성 흐름
 - DB 테이블 역할 및 프론트엔드 필드 매핑
 
@@ -255,4 +255,4 @@ interface DeleteProcess {
   - 로컬/Docker 빌드는 기본값 `/` 사용
 - `.env.production`은 `.gitignore`에 포함 — 사내 PC에서 직접 생성
 - shadcn 컴포넌트 추가: `npx shadcn@latest add [component]`
-- `useDiskConfigStore`는 API 없이 브라우저 메모리에만 저장됨 (새로고침 시 초기화)
+- 삭제 폼은 `GET /api/process/latest-config/:diskId/`로 마지막 실행값을 받아 prefill함

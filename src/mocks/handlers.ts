@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import type { User, Disk, DiskConfig, DeleteProcess } from '@/types'
+import type { User, Disk, DeleteProcess, DeleteProcessInput } from '@/types'
 
 const BASE_URL = import.meta.env.VITE_API_URL
 
@@ -11,21 +11,6 @@ const mockDisks: Disk[] = [
   { id: 3, name: 'tmp-workspace', mountPath: '/data/tmp',      server: 'server02', usedGB: 120, quotaGB: 500 },
   { id: 4, name: 'backup-store',  mountPath: '/backup/main',   server: 'server02', usedGB: 480, quotaGB: 500 },
 ]
-
-const mockDiskConfigs: Record<number, DiskConfig> = {
-  1: {
-    diskId: 1, diskName: 'project1-data',
-    internalPaths: ['/data/project1/logs/2024', '/data/project1/cache'],
-    externalPaths: ['/archive/project1/logs/2024'],
-    toEmails: ['hong@company.com'], ccEmails: ['team@company.com'],
-  },
-  2: {
-    diskId: 2, diskName: 'logs-archive',
-    internalPaths: ['/data/logs/2023'],
-    externalPaths: ['/archive/logs/2023'],
-    toEmails: ['hong@company.com'], ccEmails: [],
-  },
-}
 
 const mockProcesses: DeleteProcess[] = [
   {
@@ -68,6 +53,23 @@ const mockProcesses: DeleteProcess[] = [
   },
 ]
 
+function toProcessInput(process: DeleteProcess): DeleteProcessInput {
+  return {
+    diskId: process.diskId,
+    diskName: process.diskName,
+    internalPaths: process.internalPaths,
+    externalPaths: process.externalPaths,
+    toEmails: process.toEmails,
+    ccEmails: process.ccEmails,
+  }
+}
+
+function getLatestProcessForDisk(diskId: number) {
+  return mockProcesses
+    .filter((process) => process.diskId === diskId)
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0]
+}
+
 export const handlers = [
   http.post(`${BASE_URL}/api/auth/login`, () =>
     HttpResponse.json({ token: 'mock-token-abc123', user: mockUser })
@@ -81,22 +83,9 @@ export const handlers = [
     HttpResponse.json(mockDisks)
   ),
 
-  http.get(`${BASE_URL}/api/disk-configs/`, () =>
-    HttpResponse.json(Object.values(mockDiskConfigs))
-  ),
-
-  http.get(`${BASE_URL}/api/disk-configs/:diskId`, ({ params }) => {
-    const config = mockDiskConfigs[Number(params.diskId)]
-    return config ? HttpResponse.json(config) : new HttpResponse(null, { status: 404 })
-  }),
-
-  http.put(`${BASE_URL}/api/disk-recipients/:diskId`, async ({ params, request }) => {
-    const body = await request.json() as { toEmails: string[], ccEmails: string[] }
-    const diskId = Number(params.diskId)
-    if (mockDiskConfigs[diskId]) {
-      mockDiskConfigs[diskId] = { ...mockDiskConfigs[diskId], ...body }
-    }
-    return HttpResponse.json(body)
+  http.get(`${BASE_URL}/api/process/latest-config/:diskId/`, ({ params }) => {
+    const latest = getLatestProcessForDisk(Number(params.diskId))
+    return latest ? HttpResponse.json(toProcessInput(latest)) : new HttpResponse(null, { status: 404 })
   }),
 
   http.get(`${BASE_URL}/api/process/`, () =>
@@ -104,7 +93,7 @@ export const handlers = [
   ),
 
   http.post(`${BASE_URL}/api/process/`, async ({ request }) => {
-    const body = await request.json() as Omit<DeleteProcess, 'id' | 'createdBy' | 'createdAt' | 'status'>
+    const body = await request.json() as DeleteProcessInput
     const newProcess: DeleteProcess = {
       id: mockProcesses.length + 1,
       ...body,
