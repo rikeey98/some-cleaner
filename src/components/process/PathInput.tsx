@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import { X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,6 +14,14 @@ interface PathInputProps {
 export default function PathInput({ label, value, onChange, placeholder = '경로 입력 후 Enter' }: PathInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [inputValue, setInputValue] = useState('')
+  const shouldFocus = useRef(false)
+
+  useLayoutEffect(() => {
+    if (shouldFocus.current) {
+      shouldFocus.current = false
+      inputRef.current?.focus()
+    }
+  })
 
   const addPaths = (raw: string) => {
     const newPaths = raw
@@ -28,12 +36,13 @@ export default function PathInput({ label, value, onChange, placeholder = '경�
     if (!val) return
     addPaths(val)
     setInputValue('')
-    requestAnimationFrame(() => inputRef.current?.focus())
+    shouldFocus.current = true
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
       e.preventDefault()
+      e.nativeEvent.stopImmediatePropagation()
       e.stopPropagation()
       handleAdd()
     }
