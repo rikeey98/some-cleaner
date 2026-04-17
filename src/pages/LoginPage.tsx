@@ -8,7 +8,7 @@ import { login } from '@/api/auth'
 import { useAuthStore } from '@/store/useAuthStore'
 
 const isMock = import.meta.env.VITE_USE_MOCK === 'true'
-const SSO_URL = `${import.meta.env.VITE_API_URL}/api/auth/sso/redirect`
+const SSO_URL = 'https://at-dev.samsungds.net/openid/sso/?sso'
 
 export default function LoginPage() {
   const navigate = useNavigate()
