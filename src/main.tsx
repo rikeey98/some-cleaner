@@ -12,7 +12,18 @@ async function enableMocking() {
   })
 }
 
+function initSsoCallback() {
+  if (import.meta.env.VITE_USE_MOCK !== 'true') {
+    import('@/lib/callback').then(({ initSsoCallback }) => {
+      initSsoCallback()
+    }).catch(() => {
+      console.log('No SSO callback initialization needed')
+    })
+  }
+}
+
 function render() {
+  initSsoCallback()
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />

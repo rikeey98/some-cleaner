@@ -5,9 +5,39 @@ import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
 import DeleteProcessPage from '@/pages/DeleteProcessPage'
 import HistoryPage from '@/pages/HistoryPage'
+import { useEffect, useState } from 'react'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const { isAuthenticated, fetchUser } = useAuthStore()
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        if (!isAuthenticated) {
+          await fetchUser()
+        }
+      } catch (err) {
+        console.error('Auth check failed:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkAuth()
+  }, [isAuthenticated, fetchUser])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">인증 확인 중...</p>
+        </div>
+      </div>
+    )
+  }
+
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
 }
 
