@@ -1,0 +1,35 @@
+FROM repository.samsungds.net/proxy-docker-registry-1.docker.io/library/node:22.22.0-alpine3.22 AS builder
+
+WORKDIR /opt/work
+
+COPY package*.json ./
+
+RUN npm config set registry http://repository.samsungds.net/repository/proxy-npm-registry.npmjs.org && \
+    npm config set proxy http://12.26.204.100:8080/ && \
+    npm config set https-proxy http://12.26.204.100:8080/ && \
+    npm config set noproxy repository.samsungds.net && \
+    npm config set strict-ssl false && \
+    npm --version && \
+    npm install --legacy-peer-deps --verbose --no-audit --no-fund
+
+RUN node --version
+
+# 옵션 A: 환경 변수를 포함하여 빌드 
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL:-http://localhost:5000}
+ARG VITE_COOKIE_DOMAIN
+ENV VITE_COOKIE_DOMAIN=.samsungds.net
+# 소스 코드 복사
+COPY . .
+
+# 빌드 (Vite -> dist/)
+RUN npm run build
+
+FROM repository.samsungds.net/proxy-docker-registry-1.docker.io/library/nginx:alpine
+
+COPY --from=builder /opt/work/dist /usr/share/nginx/html
+
+COPY docker/nginx-qa.conf /etc/nginx/conf.d/default.conf
+
+HEALTHCHECK --interval-10s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1

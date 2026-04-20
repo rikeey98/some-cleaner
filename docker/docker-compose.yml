@@ -1,0 +1,11 @@
+services:
+    app:
+        build:
+            context: ..
+            dockerfile: docker/Dockerfile-dev
+            args:
+                - VITE_API_URL=${VITE_API_URL:-http://localhost:5000}
+        container_name: disk-cleaner-dev
+        ports:
+            - '5173:80'
+        restart: unless-stopped
