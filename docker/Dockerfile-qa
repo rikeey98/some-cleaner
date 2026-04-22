@@ -16,7 +16,7 @@ RUN node --version
 
 # 옵션 A: 환경 변수를 포함하여 빌드 
 ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL:-http://localhost:5000}
+ENV VITE_API_URL=${VITE_API_URL:-}
 ARG VITE_COOKIE_DOMAIN
 ENV VITE_COOKIE_DOMAIN=.samsungds.net
 # 소스 코드 복사
