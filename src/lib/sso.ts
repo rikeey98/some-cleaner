@@ -84,21 +84,24 @@ export function startSsoLogin(toPath = '/dashboard') {
 }
 
 export function handleSsoCallback() {
-  const userId = getCookie('userID')
-  const token = getCookie('token')
   const toPath = getCookie('toPath')
   const cookieDomain = (import.meta.env.VITE_COOKIE_DOMAIN ?? '').trim()
 
-  if (userId && token) {
-    clearPathCookies(cookieDomain)
-    return {
-      ok: true as const,
-      redirectPath: toPath || '/dashboard',
-    }
+  // toPath는 프론트엔드가 설정한 non-HttpOnly 쿠키 → SSO 콜백 여부 판단 기준
+  if (!toPath) {
+    return { ok: false as const, message: 'SSO 콜백이 아닙니다.' }
   }
 
+  clearPathCookies(cookieDomain)
+
+  // userID/token이 non-HttpOnly면 바로 읽을 수 있음, HttpOnly면 null
+  const userId = getCookie('userID')
+  const token = getCookie('token')
+
   return {
-    ok: false as const,
-    message: 'SSO 인증 정보를 찾을 수 없습니다.',
+    ok: true as const,
+    redirectPath: toPath,
+    userId,
+    token,
   }
 }

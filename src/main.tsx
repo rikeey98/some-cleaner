@@ -12,18 +12,16 @@ async function enableMocking() {
   })
 }
 
-function initSsoCallback() {
-  if (import.meta.env.VITE_USE_MOCK !== 'true') {
-    import('@/lib/callback').then(({ initSsoCallback }) => {
-      initSsoCallback()
-    }).catch(() => {
-      console.log('No SSO callback initialization needed')
-    })
-  }
+async function handleSso() {
+  if (import.meta.env.VITE_USE_MOCK === 'true') return
+  const { initSsoCallback } = await import('@/lib/callback')
+  await initSsoCallback()
 }
 
-function render() {
-  initSsoCallback()
+async function init() {
+  await enableMocking()
+  await handleSso()   // React 렌더링 전에 SSO 인증 처리 완료
+
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />
@@ -31,4 +29,4 @@ function render() {
   )
 }
 
-enableMocking().then(render).catch(render)
+init().catch(console.error)

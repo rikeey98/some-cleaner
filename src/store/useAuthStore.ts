@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { User } from '@/types'
+import { getMe } from '@/api/auth'
 
 const isLocalMode = import.meta.env.VITE_USE_MOCK === 'true'
 
@@ -18,6 +19,7 @@ interface AuthState {
   logout: () => void
   fetchUser: () => Promise<void>
   setLocalAuth: () => void
+  setUserFromSession: (user: User) => void
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -38,24 +40,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.setItem('token', mockToken)
     set({ token: mockToken, user: { id: String(mockUserID), name: String(mockUserID), email:'local@company.com' }, isAuthenticated: true })
   },
+  // HttpOnly 세션 쿠키 기반 인증: token 없이 user만 설정
+  setUserFromSession: (user: User) => {
+    set({ user, isAuthenticated: true })
+  },
   fetchUser: async () => {
     if (isLocalMode) {
       get().setLocalAuth()
       return
     }
 
-    try {
-      const userId = getCookie('userID')
-      const token = getCookie('token')
+    // 1. non-HttpOnly 쿠키에서 직접 읽기
+    const userId = getCookie('userID')
+    const token = getCookie('token')
+    if (userId && token) {
+      set({ token, user: { id: userId, name: String(userId), email: `${userId}@samsung.com` }, isAuthenticated: true })
+      localStorage.setItem('token', token)
+      return
+    }
 
-      if (userId && token) {
-        set({ token, user: { id: userId, name: String(userId), email: `${userId}@samsung.com` }, isAuthenticated: true })
-        localStorage.setItem('token', token)
-      }
-    } catch (err) {
-      console.error('fetchUser failed:', err)
-      get().logout()
-      throw err
+    // 2. HttpOnly 쿠키 or 세션: API 호출로 인증 확인
+    // axios interceptor가 token null이면 Authorization 헤더 생략하므로
+    // 브라우저가 HttpOnly 쿠키를 자동으로 요청에 포함
+    try {
+      const { data: user } = await getMe()
+      set({ user, isAuthenticated: true })
+    } catch {
+      // 인증되지 않음, 상태 변경 없음
     }
   },
 }))
