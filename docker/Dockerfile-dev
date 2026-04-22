@@ -14,7 +14,9 @@ RUN npm config set registry http://repository.samsungds.net/repository/proxy-npm
 
 RUN node --version
 
-# 옵션 A: 환경 변수를 포함하여 빌드 
+# 옵션 A: 환경 변수를 포함하여 빌드
+ARG VITE_BASE
+ENV VITE_BASE=${VITE_BASE:-/}
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL:-http://localhost:5000}
 ARG VITE_COOKIE_DOMAIN
