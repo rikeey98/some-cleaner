@@ -41,7 +41,7 @@ function clearPathCookies(domain: string) {
 export function startSsoLogin(toPath = '/dashboard') {
   const hostname = window.location.hostname
   const cookieDomain = (import.meta.env.VITE_COOKIE_DOMAIN ?? '').trim()
-  const basePath = '/somecleaner'
+  const basePath = '/somecleaner/'
   
   if (LOCAL_HOSTS.has(hostname)) {
     return {
@@ -74,7 +74,7 @@ export function startSsoLogin(toPath = '/dashboard') {
     finalPath = basePath + toPath.replace(/^\//, '')
   }
 
-  if (!finalPath.endsWith('/') {
+  if (!finalPath.endsWith('/')) {
     finalPath += '/'
   }
   
