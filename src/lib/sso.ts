@@ -74,10 +74,8 @@ export function startSsoLogin(toPath = '/dashboard') {
     finalPath = basePath + toPath.replace(/^\//, '')
   }
 
-  if (!finalPath.endsWith('/')) {
-    finalPath += '/'
-  }
-  
+  finalPath = finalPath.replace(/\/$/, '')
+
   setCookie('fromPath', currentPath, cookieDomain)
   setCookie('toPath', finalPath, cookieDomain)
   window.location.href = SSO_URL
