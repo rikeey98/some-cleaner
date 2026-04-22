@@ -1,12 +1,6 @@
 import { handleSsoCallback } from '@/lib/sso'
 import { useAuthStore } from '@/store/useAuthStore'
-
-function getCookie(name: string): string | null {
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null
-  return null
-}
+import { getMe } from '@/api/auth'
 
 export async function initSsoCallback(): Promise<void> {
   if (import.meta.env.VITE_USE_MOCK === 'true') return
@@ -14,15 +8,21 @@ export async function initSsoCallback(): Promise<void> {
   const result = handleSsoCallback()
   if (!result.ok) return
 
-  const userId = getCookie('userID')
-  const token = getCookie('token')
-
-  if (userId && token) {
-    useAuthStore.getState().login(token, {
-      id: userId,
-      name: String(userId),
-      email: `${userId}@samsung.com`,
+  if (result.userId && result.token) {
+    // non-HttpOnly 쿠키: 직접 읽어서 로그인
+    useAuthStore.getState().login(result.token, {
+      id: result.userId,
+      name: String(result.userId),
+      email: `${result.userId}@samsung.com`,
     })
-    // Django가 이미 toPath로 리다이렉트했으므로 추가 navigation 불필요
+    return
+  }
+
+  // HttpOnly 쿠키: 브라우저가 자동으로 쿠키를 포함해 API 호출
+  try {
+    const { data: user } = await getMe()
+    useAuthStore.getState().setUserFromSession(user)
+  } catch {
+    // 세션 쿠키도 없거나 만료됨
   }
 }
