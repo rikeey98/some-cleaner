@@ -41,7 +41,8 @@ function clearPathCookies(domain: string) {
 export function startSsoLogin(toPath = '/dashboard') {
   const hostname = window.location.hostname
   const cookieDomain = (import.meta.env.VITE_COOKIE_DOMAIN ?? '').trim()
-
+  const basePath = '/somecleaner'
+  
   if (LOCAL_HOSTS.has(hostname)) {
     return {
       ok: false as const,
@@ -56,7 +57,7 @@ export function startSsoLogin(toPath = '/dashboard') {
     }
   }
 
-  const normalizedDomain = cookieDomain.replace(/^\./, '')
+  const normalizedDomain = cookieDomain.replace(/^\\./, '')
   if (!hostname.endsWith(normalizedDomain)) {
     return {
       ok: false as const,
@@ -64,8 +65,21 @@ export function startSsoLogin(toPath = '/dashboard') {
     }
   }
 
-  setCookie('fromPath', getCurrentPath(), cookieDomain)
-  setCookie('toPath', toPath, cookieDomain)
+  const currentPath = getCurrentPath()
+
+  let finalPath = toPath
+  if (!toPath.startsWith('/')) {
+    finalPath = basePath + toPath
+  } else if (!toPath.startsWith(basePath)) {
+    finalPath = basePath + toPath.replace(/^\//, '')
+  }
+
+  if (!finalPath.endsWith('/') {
+    finalPath += '/'
+  }
+  
+  setCookie('fromPath', currentPath, cookieDomain)
+  setCookie('toPath', finalPath, cookieDomain)
   window.location.href = SSO_URL
 
   return { ok: true as const }
