@@ -75,7 +75,7 @@ export const handlers = [
     HttpResponse.json({ token: 'mock-token-abc123', user: mockUser })
   ),
 
-  http.get(`${BASE_URL}/api/auth/me`, () =>
+  http.get(`${BASE_URL}/openid/me`, () =>
     HttpResponse.json(mockUser)
   ),
 

@@ -72,7 +72,7 @@ some-cleaner/
 ├── src/
 │   ├── api/
 │   │   ├── client.ts         # axios 인스턴스 (baseURL, Authorization 헤더)
-│   │   ├── auth.ts           # POST /api/auth/login, GET /api/auth/me
+│   │   ├── auth.ts           # POST /api/auth/login, GET /openid/me
 │   │   ├── disks.ts          # GET /api/disks/
 │   │   └── process.ts        # GET /api/process/, GET /api/process/latest-config/:diskId/, POST /api/process/
 │   ├── components/
@@ -107,7 +107,7 @@ some-cleaner/
 ├── public/
 │   └── mockServiceWorker.js  # MSW service worker
 ├── .env.development          # VITE_USE_MOCK=true, VITE_API_URL=http://localhost:8000
-├── .env.production           # gitignore됨, 사내에서 직접 생성
+├── .env.production           # VITE_API_URL=https://at-dev.samsungds.net
 ├── copy-to-internal.ps1      # 사내 이전용 파일 복사 스크립트 (Windows)
 ├── components.json           # shadcn/ui 설정
 ├── tailwind.config.ts        # shadcn CSS 변수 연동
@@ -122,7 +122,7 @@ some-cleaner/
 | 변수 | 사외 값 | 사내 값 | 설명 |
 |------|---------|---------|------|
 | `VITE_USE_MOCK` | `true` | `false` | MSW 활성화 여부 |
-| `VITE_API_URL` | `http://localhost:8000` | 실제 Django URL | Django API base URL |
+| `VITE_API_URL` | `http://localhost:5000` | `https://at-dev.samsungds.net` | Django API base URL |
 | `VITE_BASE` | 미설정 (`/`) | 미설정 (`/`) | GitHub Pages 배포 시만 `/some-cleaner/` |
 
 ---
@@ -146,7 +146,7 @@ some-cleaner/
 
 ```ts
 POST /api/auth/login    → { token, user }
-GET  /api/auth/me       → User
+GET  /openid/me         → User
 GET  /api/disks/        → Disk[]
 GET  /api/process/latest-config/:diskId/ → DeleteProcessInput | 404
 GET  /api/process/      → DeleteProcess[]

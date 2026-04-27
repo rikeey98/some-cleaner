@@ -4,7 +4,7 @@ services:
             context: ..
             dockerfile: docker/Dockerfile-dev
             args:
-                - VITE_API_URL=${VITE_API_URL:-http://localhost:5000}
+                - VITE_API_URL=${VITE_API_URL:-https://at-dev.samsungds.net}
         container_name: disk-cleaner-dev
         ports:
             - '5173:80'
