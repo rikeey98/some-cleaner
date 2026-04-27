@@ -5,13 +5,6 @@ import { authDebugError, authDebugLog, getAuthDebugSnapshot, toAuthDebugError } 
 
 const isLocalMode = import.meta.env.VITE_USE_MOCK === 'true'
 
-function getCookie(name: string): string | null {
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null
-  return null
-}
-
 interface AuthState {
   token: string | null
   user: User | null
@@ -24,9 +17,9 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  token: localStorage.getItem('token') || getCookie('token'),
+  token: isLocalMode ? localStorage.getItem('token') : null,
   user: null,
-  isAuthenticated: !!(localStorage.getItem('token') || getCookie('token')),
+  isAuthenticated: isLocalMode ? !!localStorage.getItem('token') : false,
   login: (token, user) => {
     localStorage.setItem('token', token)
     set({ token, user, isAuthenticated: true })
@@ -56,25 +49,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return
     }
 
-    // 1. non-HttpOnly 쿠키에서 직접 읽기
-    const userId = getCookie('userID')
-    const token = getCookie('token')
-    if (userId && token) {
-      set({ token, user: { id: userId, name: String(userId), email: `${userId}@samsung.com` }, isAuthenticated: true })
-      localStorage.setItem('token', token)
-      authDebugLog('auth-store', 'fetchUser:using visible cookies', getAuthDebugSnapshot({ userId }))
-      return
-    }
-
-    // 2. HttpOnly 쿠키 or 세션: API 호출로 인증 확인
-    // axios interceptor가 token null이면 Authorization 헤더 생략하므로
-    // 브라우저가 HttpOnly 쿠키를 자동으로 요청에 포함
+    // 운영 환경은 HttpOnly access_token + /openid/me 결과만 신뢰한다.
     try {
       const { data: user } = await getMe()
-      set({ user, isAuthenticated: true })
+      set({ token: null, user, isAuthenticated: true })
       authDebugLog('auth-store', 'fetchUser:getMe success', getAuthDebugSnapshot({ userId: user.id }))
     } catch (error) {
-      // 인증되지 않음, 상태 변경 없음
+      set({ token: null, user: null, isAuthenticated: false })
       authDebugError('auth-store', 'fetchUser:getMe failed', {
         ...toAuthDebugError(error),
         snapshot: getAuthDebugSnapshot(),

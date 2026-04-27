@@ -13,18 +13,7 @@ export async function initSsoCallback(): Promise<void> {
     return
   }
 
-  if (result.userId && result.token) {
-    // non-HttpOnly 쿠키: 직접 읽어서 로그인
-    authDebugLog('callback', 'initSsoCallback:using visible cookies', getAuthDebugSnapshot({ redirectPath: result.redirectPath }))
-    useAuthStore.getState().login(result.token, {
-      id: result.userId,
-      name: String(result.userId),
-      email: `${result.userId}@samsung.com`,
-    })
-    return
-  }
-
-  // HttpOnly 쿠키: 브라우저가 자동으로 쿠키를 포함해 API 호출
+  // 운영 환경은 HttpOnly access_token이 실린 /openid/me 응답만 신뢰한다.
   try {
     authDebugLog('callback', 'initSsoCallback:calling getMe', getAuthDebugSnapshot({ redirectPath: result.redirectPath }))
     const { data: user } = await getMe()

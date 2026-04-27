@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { authDebugError, authDebugLog, getAuthDebugSnapshot, toAuthDebugError } from '@/lib/authDebug'
 
+const isLocalMode = import.meta.env.VITE_USE_MOCK === 'true'
+
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
@@ -18,14 +20,14 @@ function buildRequestUrl(baseURL?: string, url?: string) {
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  if (isLocalMode && token) config.headers.Authorization = `Bearer ${token}`
 
   if (shouldLogAuthRequest(config.url)) {
     authDebugLog('api', 'request', {
       method: config.method?.toUpperCase() || 'GET',
       url: buildRequestUrl(config.baseURL, config.url),
       withCredentials: config.withCredentials ?? client.defaults.withCredentials ?? false,
-      hasLocalToken: Boolean(token),
+      hasLocalToken: isLocalMode && Boolean(token),
       snapshot: getAuthDebugSnapshot(),
     })
   }

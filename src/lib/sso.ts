@@ -105,20 +105,12 @@ export function handleSsoCallback() {
 
   clearPathCookies(cookieDomain)
 
-  // userID/token이 non-HttpOnly면 바로 읽을 수 있음, HttpOnly면 null
-  const userId = getCookie('userID')
-  const token = getCookie('token')
-
   authDebugLog('sso', 'handleSsoCallback:result', getAuthDebugSnapshot({
     redirectPath: toPath,
-    hasVisibleUserId: Boolean(userId),
-    hasVisibleToken: Boolean(token),
   }))
 
   return {
     ok: true as const,
     redirectPath: toPath,
-    userId,
-    token,
   }
 }
