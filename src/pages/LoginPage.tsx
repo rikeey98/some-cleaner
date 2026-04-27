@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { login } from '@/api/auth'
 import { startSsoLogin } from '@/lib/sso'
 import { useAuthStore } from '@/store/useAuthStore'
+import { authDebugError, authDebugLog, getAuthDebugSnapshot, toAuthDebugError } from '@/lib/authDebug'
 
 const isMock = import.meta.env.VITE_USE_MOCK === 'true'
 
@@ -22,11 +23,17 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setIsLoading(true)
+    authDebugLog('login-page', 'handleMockLogin:start', getAuthDebugSnapshot({ username }))
     try {
       const { data } = await login(username, password)
       loginStore(data.token, data.user)
+      authDebugLog('login-page', 'handleMockLogin:success', getAuthDebugSnapshot({ userId: data.user.id }))
       navigate('/dashboard')
-    } catch {
+    } catch (error) {
+      authDebugError('login-page', 'handleMockLogin:failed', {
+        ...toAuthDebugError(error),
+        snapshot: getAuthDebugSnapshot({ username }),
+      })
       setError('로그인에 실패했습니다.')
     } finally {
       setIsLoading(false)
@@ -35,8 +42,12 @@ export default function LoginPage() {
 
   const handleSsoLogin = () => {
     setError('')
+    authDebugLog('login-page', 'handleSsoLogin:clicked', getAuthDebugSnapshot())
     const result = startSsoLogin('/dashboard')
-    if (!result.ok) setError(result.message)
+    if (!result.ok) {
+      authDebugError('login-page', 'handleSsoLogin:failed', getAuthDebugSnapshot({ message: result.message }))
+      setError(result.message)
+    }
   }
 
   return (

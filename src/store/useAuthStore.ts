@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { User } from '@/types'
 import { getMe } from '@/api/auth'
+import { authDebugError, authDebugLog, getAuthDebugSnapshot, toAuthDebugError } from '@/lib/authDebug'
 
 const isLocalMode = import.meta.env.VITE_USE_MOCK === 'true'
 
@@ -29,22 +30,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: (token, user) => {
     localStorage.setItem('token', token)
     set({ token, user, isAuthenticated: true })
+    authDebugLog('auth-store', 'login', getAuthDebugSnapshot({ userId: user.id }))
   },
   logout: () => {
     localStorage.removeItem('token')
     set({ token: null, user: null, isAuthenticated: false })
+    authDebugLog('auth-store', 'logout', getAuthDebugSnapshot())
   },
   setLocalAuth: () => {
     const mockUserID = 'local.user'
     const mockToken = 'local-token-1234'
     localStorage.setItem('token', mockToken)
     set({ token: mockToken, user: { id: String(mockUserID), name: String(mockUserID), email:'local@company.com' }, isAuthenticated: true })
+    authDebugLog('auth-store', 'setLocalAuth', getAuthDebugSnapshot({ userId: mockUserID }))
   },
   // HttpOnly 세션 쿠키 기반 인증: token 없이 user만 설정
   setUserFromSession: (user: User) => {
     set({ user, isAuthenticated: true })
+    authDebugLog('auth-store', 'setUserFromSession', getAuthDebugSnapshot({ userId: user.id }))
   },
   fetchUser: async () => {
+    authDebugLog('auth-store', 'fetchUser:start', getAuthDebugSnapshot({ isLocalMode }))
     if (isLocalMode) {
       get().setLocalAuth()
       return
@@ -56,6 +62,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (userId && token) {
       set({ token, user: { id: userId, name: String(userId), email: `${userId}@samsung.com` }, isAuthenticated: true })
       localStorage.setItem('token', token)
+      authDebugLog('auth-store', 'fetchUser:using visible cookies', getAuthDebugSnapshot({ userId }))
       return
     }
 
@@ -65,8 +72,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const { data: user } = await getMe()
       set({ user, isAuthenticated: true })
-    } catch {
+      authDebugLog('auth-store', 'fetchUser:getMe success', getAuthDebugSnapshot({ userId: user.id }))
+    } catch (error) {
       // 인증되지 않음, 상태 변경 없음
+      authDebugError('auth-store', 'fetchUser:getMe failed', {
+        ...toAuthDebugError(error),
+        snapshot: getAuthDebugSnapshot(),
+      })
     }
   },
 }))

@@ -6,26 +6,42 @@ import DashboardPage from '@/pages/DashboardPage'
 import DeleteProcessPage from '@/pages/DeleteProcessPage'
 import HistoryPage from '@/pages/HistoryPage'
 import { useEffect, useState } from 'react'
+import { authDebugError, authDebugLog, getAuthDebugSnapshot, toAuthDebugError } from '@/lib/authDebug'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, fetchUser } = useAuthStore()
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    authDebugLog('router', 'RequireAuth:effect start', getAuthDebugSnapshot({ isAuthenticated }))
     const checkAuth = async () => {
       try {
         if (!isAuthenticated) {
+          authDebugLog('router', 'RequireAuth:calling fetchUser', getAuthDebugSnapshot())
           await fetchUser()
+        } else {
+          authDebugLog('router', 'RequireAuth:skip fetchUser', getAuthDebugSnapshot({ reason: 'already authenticated' }))
         }
       } catch (err) {
+        authDebugError('router', 'RequireAuth:fetchUser failed', {
+          ...toAuthDebugError(err),
+          snapshot: getAuthDebugSnapshot(),
+        })
         console.error('Auth check failed:', err)
       } finally {
+        authDebugLog('router', 'RequireAuth:effect done', getAuthDebugSnapshot({
+          isAuthenticated: useAuthStore.getState().isAuthenticated,
+        }))
         setIsLoading(false)
       }
     }
 
     checkAuth()
   }, [isAuthenticated, fetchUser])
+
+  useEffect(() => {
+    authDebugLog('router', 'RequireAuth:state changed', getAuthDebugSnapshot({ isAuthenticated, isLoading }))
+  }, [isAuthenticated, isLoading])
 
   if (isLoading) {
     return (

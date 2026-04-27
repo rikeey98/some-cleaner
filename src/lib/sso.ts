@@ -1,3 +1,5 @@
+import { authDebugLog, authDebugWarn, getAuthDebugSnapshot } from '@/lib/authDebug'
+
 const SSO_URL = 'https://at-dev.samsungds.net/openid/sso/?sso'
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1'])
 
@@ -42,8 +44,11 @@ export function startSsoLogin(toPath = '/dashboard') {
   const hostname = window.location.hostname
   const cookieDomain = (import.meta.env.VITE_COOKIE_DOMAIN ?? '').trim()
   const basePath = '/somecleaner/'
+
+  authDebugLog('sso', 'startSsoLogin:called', getAuthDebugSnapshot({ toPath, hostname, cookieDomain }))
   
   if (LOCAL_HOSTS.has(hostname)) {
+    authDebugWarn('sso', 'startSsoLogin:blocked local host', { hostname })
     return {
       ok: false as const,
       message: '로컬 환경에서는 사내 SSO를 지원하지 않습니다. VITE_USE_MOCK=true로 실행해주세요.',
@@ -51,6 +56,7 @@ export function startSsoLogin(toPath = '/dashboard') {
   }
 
   if (!cookieDomain) {
+    authDebugWarn('sso', 'startSsoLogin:missing cookie domain')
     return {
       ok: false as const,
       message: 'SSO 설정이 올바르지 않습니다. VITE_COOKIE_DOMAIN이 필요합니다.',
@@ -59,6 +65,7 @@ export function startSsoLogin(toPath = '/dashboard') {
 
   const normalizedDomain = cookieDomain.replace(/^\\./, '')
   if (!hostname.endsWith(normalizedDomain)) {
+    authDebugWarn('sso', 'startSsoLogin:hostname mismatch', { hostname, cookieDomain, normalizedDomain })
     return {
       ok: false as const,
       message: `현재 호스트(${hostname})에서는 ${cookieDomain} 쿠키 도메인을 사용할 수 없습니다.`,
@@ -78,6 +85,7 @@ export function startSsoLogin(toPath = '/dashboard') {
 
   setCookie('fromPath', currentPath, cookieDomain)
   setCookie('toPath', finalPath, cookieDomain)
+  authDebugLog('sso', 'startSsoLogin:redirecting', getAuthDebugSnapshot({ currentPath, finalPath, ssoUrl: SSO_URL }))
   window.location.href = SSO_URL
 
   return { ok: true as const }
@@ -87,8 +95,11 @@ export function handleSsoCallback() {
   const toPath = getCookie('toPath')
   const cookieDomain = (import.meta.env.VITE_COOKIE_DOMAIN ?? '').trim()
 
+  authDebugLog('sso', 'handleSsoCallback:called', getAuthDebugSnapshot({ toPath, cookieDomain }))
+
   // toPath는 프론트엔드가 설정한 non-HttpOnly 쿠키 → SSO 콜백 여부 판단 기준
   if (!toPath) {
+    authDebugLog('sso', 'handleSsoCallback:not callback', getAuthDebugSnapshot())
     return { ok: false as const, message: 'SSO 콜백이 아닙니다.' }
   }
 
@@ -97,6 +108,12 @@ export function handleSsoCallback() {
   // userID/token이 non-HttpOnly면 바로 읽을 수 있음, HttpOnly면 null
   const userId = getCookie('userID')
   const token = getCookie('token')
+
+  authDebugLog('sso', 'handleSsoCallback:result', getAuthDebugSnapshot({
+    redirectPath: toPath,
+    hasVisibleUserId: Boolean(userId),
+    hasVisibleToken: Boolean(token),
+  }))
 
   return {
     ok: true as const,
