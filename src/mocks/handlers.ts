@@ -1,15 +1,15 @@
 import { http, HttpResponse } from 'msw'
-import type { User, Disk, DeleteProcess, DeleteProcessInput } from '@/types'
+import type { User, DeleteProcess, DeleteProcessInput } from '@/types'
 
 const BASE_URL = import.meta.env.VITE_API_URL
 
 const mockUser: User = { id: 1, name: '홍길동', email: 'hong@company.com' }
 
-const mockDisks: Disk[] = [
-  { id: 1, name: 'project1-data', mountPath: '/data/project1', server: 'server01', usedGB: 350, quotaGB: 500 },
-  { id: 2, name: 'logs-archive',  mountPath: '/data/logs',     server: 'server01', usedGB: 460, quotaGB: 500 },
-  { id: 3, name: 'tmp-workspace', mountPath: '/data/tmp',      server: 'server02', usedGB: 120, quotaGB: 500 },
-  { id: 4, name: 'backup-store',  mountPath: '/backup/main',   server: 'server02', usedGB: 480, quotaGB: 500 },
+const mockDisks = [
+  { id: 1, name: 's5e9985v0', alert: 'n', threshold: 70, usage: 63, project: 'project1', created_date: '2026-04-01T09:00:00Z' },
+  { id: 2, name: 's5e9985v1', alert: 'y', threshold: 70, usage: 91, project: 'archive', created_date: '2026-04-03T09:00:00Z' },
+  { id: 3, name: 's5e9985v2', alert: 'n', threshold: 80, usage: 42, project: 'tmp-workspace', created_date: '2026-04-05T09:00:00Z' },
+  { id: 4, name: 's5e9985v3', alert: 'y', threshold: 85, usage: 96, project: 'backup', created_date: '2026-04-07T09:00:00Z' },
 ]
 
 const mockProcesses: DeleteProcess[] = [
@@ -79,7 +79,7 @@ export const handlers = [
     HttpResponse.json(mockUser)
   ),
 
-  http.get(`${BASE_URL}/api/disks/`, () =>
+  http.get(`${BASE_URL}/some/disk/`, () =>
     HttpResponse.json(mockDisks)
   ),
 

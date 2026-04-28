@@ -13,7 +13,11 @@ export const useDiskStore = create<DiskState>((set) => ({
   isLoading: false,
   fetchDisks: async () => {
     set({ isLoading: true })
-    const { data } = await getDisks()
-    set({ disks: data, isLoading: false })
+    try {
+      const { data } = await getDisks()
+      set({ disks: data })
+    } finally {
+      set({ isLoading: false })
+    }
   },
 }))

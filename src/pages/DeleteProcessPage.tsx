@@ -119,7 +119,7 @@ export default function DeleteProcessPage() {
             <div className="space-y-1">
               <Label>디스크</Label>
               <Input
-                value={disk ? `${disk.name} (${disk.mountPath})` : '불러오는 중...'}
+                value={disk ? `${disk.name}${disk.project ? ` / ${disk.project}` : ''}` : '불러오는 중...'}
                 readOnly
                 className="bg-muted"
               />

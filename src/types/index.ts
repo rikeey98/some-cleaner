@@ -7,10 +7,11 @@ export interface User {
 export interface Disk {
   id: number
   name: string
-  mountPath: string
-  server: string
-  usedGB: number
-  quotaGB: number
+  alert: 'y' | 'n'
+  threshold: number
+  usage: number
+  project: string
+  createdDate: string
 }
 
 export interface DeleteProcessInput {
